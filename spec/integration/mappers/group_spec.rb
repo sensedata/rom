@@ -86,6 +86,36 @@ describe 'Mapper definition DSL' do
       )
     end
 
+    it 'allows defining a group with a non-array type' do
+      # this is bad, because transproc is strict about registrations
+      Transproc.register :to_set, -> arr { Set.new(arr) }
+
+      setup.mappers do
+        define(:with_tasks, parent: :users) do
+          model name: 'Test::UserWithTasks'
+
+          attribute :name
+          attribute :email
+
+          group :tasks, type: :set do
+            model name: 'Test::Task'
+
+            attribute :title
+            attribute :priority
+          end
+        end
+      end
+
+      rom = setup.finalize
+
+      Test::UserWithTasks.send(:include, Equalizer.new(:name, :email, :tasks))
+      Test::Task.send(:include, Equalizer.new(:title, :priority))
+
+      jane = rom.relation(:users).with_tasks.map_with(:with_tasks).to_a.last
+
+      expect(jane.tasks).to be_kind_of Set
+    end
+
     it 'allows defining grouped attributes mapped to a model via block' do
       setup.mappers do
         define(:with_tasks, parent: :users) do
