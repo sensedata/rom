@@ -129,7 +129,11 @@ module ROM
 
     def infer_relation?(gateway, name)
       inferrable_relations(gateway).include?(name) && relation_classes.none? { |klass|
-        klass.dataset == name
+        begin
+          klass.dataset == name
+        rescue NoMethodError => e
+          raise("Cannot infer relation for #{name} with #{klass}; #{e}.")
+        end
       }
     end
 

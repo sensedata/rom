@@ -25,7 +25,11 @@ module ROM
         @relation_classes.each do |klass|
           # TODO: raise a meaningful error here and add spec covering the case
           #       where klass' gateway points to non-existant repo
-          gateway = @gateways.fetch(klass.gateway)
+          begin
+            gateway = @gateways.fetch(klass.gateway)
+          rescue NoMethodError => e
+            raise("Cannot finalize relation class #{klass}; #{e}.")
+          end
           ds_proc = klass.dataset_proc || -> { self }
           dataset = gateway.dataset(klass.dataset).instance_exec(&ds_proc)
 
