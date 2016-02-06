@@ -22,10 +22,19 @@ module ROM
       # @api private
       def run!
         registry = @command_classes.each_with_object({}) do |klass, h|
-          rel_name = klass.relation
-          next unless rel_name
+          begin
+            rel_name = klass.relation
+          rescue NoMethodError => e
+            puts("Unable to load commands class #{klass}; #{e}.")
+            next
+          end
 
           relation = @relations[rel_name]
+          if relation.nil?
+            puts("Unable to load commands class #{klass}; no relation found for name '#{rel_name}'.")
+            next
+          end
+
           name = klass.register_as || klass.default_name
 
           gateway = @gateways[relation.class.gateway]

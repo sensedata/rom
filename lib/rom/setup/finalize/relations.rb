@@ -28,7 +28,8 @@ module ROM
           begin
             gateway = @gateways.fetch(klass.gateway)
           rescue NoMethodError => e
-            raise("Cannot finalize relation class #{klass}; #{e}.")
+            puts("Unable to load relation class #{klass}; #{e}.")
+            next
           end
           ds_proc = klass.dataset_proc || -> { self }
           dataset = gateway.dataset(klass.dataset).instance_exec(&ds_proc)
